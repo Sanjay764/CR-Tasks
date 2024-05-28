@@ -1,0 +1,65 @@
+document.getElementById('register').addEventListener('click', async () => {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if (response.ok) {
+    alert('User registered');
+  } else {
+    alert('Registration failed');
+  }
+});
+
+document.getElementById('login').addEventListener('click', async () => {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if (response.ok) {
+    const data = await response.json();
+    localStorage.setItem('token', data.token);
+    document.getElementById('editor').style.display = 'block';
+  } else {
+    alert('Login failed');
+  }
+});
+
+document.getElementById('createPost').addEventListener('click', async () => {
+  const title = document.getElementById('title').value;
+  const content = document.getElementById('content').value;
+  const token = localStorage.getItem('token');
+  const response = await fetch('/api/posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token
+    },
+    body: JSON.stringify({ title, content })
+  });
+  if (response.ok) {
+    alert('Post created');
+    loadPosts();
+  } else {
+    alert('Post creation failed');
+  }
+});
+
+async function loadPosts() {
+  const response = await fetch('/api/posts');
+  const posts = await response.json();
+  const postsDiv = document.getElementById('posts');
+  postsDiv.innerHTML = '';
+  posts.forEach(post => {
+    const postDiv = document.createElement('div');
+    postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><small>by ${post.author.username}</small>`;
+    postsDiv.appendChild(postDiv);
+  });
+}
+
+loadPosts();
